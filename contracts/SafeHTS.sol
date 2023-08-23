@@ -172,6 +172,11 @@ library SafeHTS {
     }
 
 /*
+	## Removed to save space given contract size limits
+	## since the security model change this method is not needed
+	## as EOA's can no longer pass their signature you can't create an FT with custom fee collector
+	## accounts that are EOAs (as each EOA has to associate the token at mint time)
+
     function safeCreateFungibleTokenWithCustomFees(IHederaTokenService.HederaToken memory token,
         int64 initialTotalSupply,
         int32 decimals,
