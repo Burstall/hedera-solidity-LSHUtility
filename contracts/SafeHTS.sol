@@ -24,7 +24,7 @@ library SafeHTS {
 	error TokenTransferFromFailed();
     error NFTTransferFailed();
     error CreateFungibleTokenFailed();
-    error CreateFungibleTokenWithCustomFeesFailed();
+    // error CreateFungibleTokenWithCustomFeesFailed();
     error CreateNonFungibleTokenFailed();
     error CreateNonFungibleTokenWithCustomFeesFailed();
     error ApproveFailed();
@@ -171,6 +171,7 @@ library SafeHTS {
         if (responseCode != HederaResponseCodes.SUCCESS) revert CreateFungibleTokenFailed();
     }
 
+/*
     function safeCreateFungibleTokenWithCustomFees(IHederaTokenService.HederaToken memory token,
         int64 initialTotalSupply,
         int32 decimals,
@@ -188,6 +189,7 @@ library SafeHTS {
         : (HederaResponseCodes.UNKNOWN, address(0));
         if (responseCode != HederaResponseCodes.SUCCESS) revert CreateFungibleTokenWithCustomFeesFailed();
     }
+	*/
 
     function safeCreateNonFungibleToken(IHederaTokenService.HederaToken memory token) external returns
     (address tokenAddress){
