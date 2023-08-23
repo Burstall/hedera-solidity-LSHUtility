@@ -4,7 +4,10 @@ pragma solidity >=0.5.8 <0.9.0;
 import { HederaResponseCodes } from "./HederaResponseCodes.sol";
 import { SafeHTS } from "./SafeHTS.sol";
 
-contract LSHUtility {
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+
+contract LSHUtility is Ownable {
 
 	error InvalidArguments();
 
@@ -55,6 +58,25 @@ contract LSHUtility {
 			approvedAddresses[i] = checkApprovedAddress(_token[i], _serial[i]);
 		}
 	}
+
+	/// @param receiverAddress address in EVM fomat of the reciever of the token
+    /// @param amount number of tokens to send (in tinybar i.e. adjusted for decimal)
+    function transferHbar(address payable receiverAddress, uint256 amount)
+        external
+        onlyOwner
+    {
+		if (receiverAddress == address(0) || amount == 0) {
+			revert InvalidArguments();
+		}
+
+		Address.sendValue(receiverAddress, amount);
+
+		emit LSHUtilityEvent(
+			receiverAddress, 
+			amount,
+			"Hbar Transfer Complete"
+		);
+    }
 
 	receive() external payable {
         emit LSHUtilityEvent(
