@@ -92,7 +92,14 @@ const main = async () => {
 
 		const encodedCommand = iface.encodeFunctionData('checkLiveAllowance', [tokenSolidityList[0], ownerList[0], spenderList[0]]);
 		console.log('encodedCommand:', encodedCommand);
-
+		/*
+		Access precoimle directly
+		const precompileABI = ['function allowance(address token, address owner, address spender) external returns (int64 responseCode, uint256 allowance)'];
+		const precompileInterface = new ethers.Interface(precompileABI);
+		const encodedCommandPrecompile = precompileInterface.encodeFunctionData('allowance', [tokenSolidityList[0], ownerList[0], spenderList[0]]);
+		ContractId.fromString('0.0.359').toSolidityAddress()
+		console.log(await readOnlyEVMFromMirrorNode(encodedCommandPrecompile, spender, false));
+		*/
 		console.log(await readOnlyEVMFromMirrorNode(encodedCommand, spender, false));
 	}
 	else if (getArgFlag('nft')) {
