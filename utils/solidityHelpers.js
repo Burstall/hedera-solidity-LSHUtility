@@ -141,9 +141,10 @@ async function parseErrorTransactionId(envOrClient, transactionId, iface) {
  * @param {String} data command and parameters encoded as a string
  * @param {AccountId} from
  * @param {Boolean} estimate gas estimate
+ * @param {Number} gas gas limit
  * @returns {String} encoded result
  */
-async function readOnlyEVMFromMirrorNode(env, contractId, data, from, estimate = true) {
+async function readOnlyEVMFromMirrorNode(env, contractId, data, from, estimate = true, gas = 300_000) {
 	const baseUrl = getBaseURL(env);
 
 	const body = {
@@ -151,7 +152,7 @@ async function readOnlyEVMFromMirrorNode(env, contractId, data, from, estimate =
 		'data': data,
 		'estimate': estimate,
 		'from': from.toSolidityAddress(),
-		'gas': 300_000,
+		'gas': gas,
 		'gasPrice': 100000000,
 		'to': contractId.toSolidityAddress(),
 		'value': 0,

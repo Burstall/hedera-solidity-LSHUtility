@@ -3,6 +3,7 @@ const fs = require('fs');
 const { ContractId, AccountId, TokenId } = require('@hashgraph/sdk');
 const { ethers } = require('ethers');
 const axios = require('axios');
+const { getArg, getArgFlag } = require('./utils');
 
 let abi, iface, baseUrl;
 
@@ -171,29 +172,6 @@ async function readOnlyEVMFromMirrorNode(data, from, estimate = true) {
 	const response = await axios.post(url, body);
 	return response.data;
 }
-
-function getArgFlag(arg) {
-	const customIndex = process.argv.indexOf(`-${arg}`);
-
-	if (customIndex > -1) {
-		return true;
-	}
-
-	return false;
-}
-
-function getArg(arg) {
-	const customidx = process.argv.indexOf(`-${arg}`);
-	let customValue;
-
-	if (customidx > -1) {
-		// Retrieve the value after --custom
-		customValue = process.argv[customidx + 1];
-	}
-
-	return customValue;
-}
-
 
 main()
 	.then(() => {
