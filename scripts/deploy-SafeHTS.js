@@ -2,11 +2,12 @@ const {
 	Client,
 	AccountId,
 	PrivateKey,
+	ContractId,
 } = require('@hashgraph/sdk');
 const fs = require('fs');
 const readlineSync = require('readline-sync');
 const { accountCreator } = require('../utils/hederaHelpers');
-const { contractDeployFunction } = require('../utils/solidityHelpers');
+const { contractDeployFunction, linkBytecode } = require('../utils/solidityHelpers');
 
 require('dotenv').config();
 
@@ -16,6 +17,10 @@ let operatorId = AccountId.fromString(process.env.ACCOUNT_ID);
 const contractName = process.env.CONTRACT_NAME ?? null;
 const env = process.env.ENVIRONMENT ?? null;
 let client;
+
+// required Solidity libraries for deployment
+const libraryNames = ['SafeHTS'];
+const safeHTSDeployment = process.env.SAFE_HTS ?? null;
 
 const main = async () => {
 	if (!env || contractName === undefined || contractName == null) {
@@ -59,14 +64,33 @@ const main = async () => {
 
 	const execute = readlineSync.keyInYNStrict('Do wish to deploy?');
 	if (execute) {
+		const libraryDeployedIds = [];
+		for (let i = 0; i < libraryNames.length; i++) {
+			const libraryName = libraryNames[i];
+			if (libraryName == 'SafeHTS' && safeHTSDeployment) {
+				console.log('Skipping SafeHTS deployment as it is already deployed');
+				libraryDeployedIds.push(ContractId.fromString(safeHTSDeployment));
+				continue;
+			}
+			console.log('\n-Deploying library:', libraryName);
+
+			const libraryBytecode = JSON.parse(fs.readFileSync(`./artifacts/contracts/${libraryName}.sol/${libraryName}.json`)).bytecode;
+
+			libraryDeployedIds.push(await contractDeployFunction(client, libraryBytecode, gasLimit));
+			console.log(`Library created with ID: ${libraryDeployedIds[i]} / ${libraryDeployedIds[i].toSolidityAddress()}`);
+		}
 
 		const json = JSON.parse(fs.readFileSync(`./artifacts/contracts/${contractName}.sol/${contractName}.json`));
 
 		const contractBytecode = json.bytecode;
 
+		// replace library address in bytecode
+		console.log('\n-Linking library addresses in bytecode...');
+		const readyToDeployBytecode = linkBytecode(contractBytecode, libraryNames, libraryDeployedIds);
+
 		console.log('\n- Deploying contract...', contractName, '\n\tgas@', gasLimit);
 
-		const [contractId, contractAddress] = await contractDeployFunction(client, contractBytecode, gasLimit);
+		const [contractId, contractAddress] = await contractDeployFunction(client, readyToDeployBytecode, gasLimit);
 
 		console.log(`Contract created with ID: ${contractId} / ${contractAddress}`);
 	}

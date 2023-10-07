@@ -2,8 +2,8 @@
   "name": "test-framework",
   "scripts": {
     "test": "npx hardhat test",
-    "test-factory": "npx hardhat test test/Factory.test.js",
-    "test-testframework": "npx hardhat test test/TestFramework.test.js",
+    "test-native": "npx hardhat test test/LSHUtilityNative.test.js",
+	"test-erc20": "npx hardhat test test/LSHUtilityERC.test.js",
     "check-size": "npx hardhat check-size",
     "solhint": "npx solhint -f table contracts/**/*.sol"
   },

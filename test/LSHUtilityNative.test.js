@@ -26,7 +26,7 @@ require('dotenv').config();
 // Get operator from .env file
 let operatorKey = PrivateKey.fromString(process.env.PRIVATE_KEY);
 let operatorId = AccountId.fromString(process.env.ACCOUNT_ID);
-const contractName = 'LSHUtility';
+const contractName = 'LSHUtilityNative';
 const env = process.env.ENVIRONMENT ?? null;
 const safeHTSDeployment = process.env.SAFE_HTS ?? null;
 

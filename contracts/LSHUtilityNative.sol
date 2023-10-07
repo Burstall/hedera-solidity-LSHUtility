@@ -6,6 +6,8 @@ import { SafeHTS } from "./SafeHTS.sol";
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LSHUtility is Ownable {
 
@@ -17,15 +19,15 @@ contract LSHUtility is Ownable {
 		string message
 	);
 	
-	function checkLiveAllowance(address _token, address _owner, address _spender) public returns (uint256 allowance) {
-		allowance = SafeHTS.safeAllowance(_token, _owner, _spender);
+	function checkLiveAllowance(address _token, address _owner, address _spender) public view returns (uint256 allowance) {
+		allowance = IERC20(_token).allowance(_owner, _spender);
 	}
 
 	function isApprovedForAllSerials(address _token, address _owner, address _spender) public returns (bool isApproved) {
 		isApproved = SafeHTS.safeIsApprovedForAll(_token, _owner, _spender);
 	}
 
-	function checkLiveAllowances(address[] memory _token, address[] memory _owner, address[] memory _spender) public returns (uint256[] memory allowances) {
+	function checkLiveAllowances(address[] memory _token, address[] memory _owner, address[] memory _spender) public view returns (uint256[] memory allowances) {
 		if (_token.length != _owner.length || _owner.length != _spender.length) {
 			revert InvalidArguments();
 		}

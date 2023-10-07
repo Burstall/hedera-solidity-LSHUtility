@@ -79,6 +79,8 @@ const main = async () => {
 			return;
 		}
 
+		console.log(' -Checking allowance for:', tokenIdList[0].toString(), 'from:', owner.toString(), 'to:', spender.toString());
+
 		const ownerList = [];
 		const spenderList = [];
 		const tokenSolidityList = [];
@@ -99,7 +101,6 @@ const main = async () => {
 		console.log(await readOnlyEVMFromMirrorNode(encodedCommandPrecompile, spender, false));
 		*/
 		const allowance = await readOnlyEVMFromMirrorNode(env, contractId, encodedCommand, spender, false);
-		console.dir(allowance);
 		console.log('allowance:', Number(iface.decodeFunctionData('checkLiveAllowance', allowance)));
 	}
 	else if (getArgFlag('nft')) {
