@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { ethers } = require('ethers');
-const { expect } = require('chai');
+const { expect, assert } = require('chai');
 const { describe, it } = require('mocha');
 const {
 	Client,
@@ -246,7 +246,7 @@ describe('Testing Allowances: ', function() {
 		expect(result).to.be.equal('SUCCESS');
 
 		// check the balance changed
-		await sleep(5000);
+		await sleep(6000);
 		const newBalance = await checkMirrorBalance(env, operatorId, FTTokenId);
 		expect(newBalance).to.be.equal(balance + 2);
 	});
@@ -279,6 +279,7 @@ describe('Testing Allowances: ', function() {
 
 	it('Check live allowances via Mirror EVM', async function() {
 		// call to the EVM via mirror node
+		assert.fail('Not implemented yet');
 	});
 });
 

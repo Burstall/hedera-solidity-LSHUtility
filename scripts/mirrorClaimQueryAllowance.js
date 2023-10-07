@@ -2,16 +2,14 @@ require('dotenv').config();
 const fs = require('fs');
 const { ContractId, AccountId, TokenId } = require('@hashgraph/sdk');
 const { ethers } = require('ethers');
-const axios = require('axios');
-const { getArg, getArgFlag } = require('./utils');
+const { getArg, getArgFlag } = require('../utils/nodeHelpers');
+const { readOnlyEVMFromMirrorNode } = require('../utils/solidityHelpers');
 
-let abi, iface, baseUrl;
+let iface;
 
 const contractName = process.env.CONTRACT_NAME ?? null;
 
 const contractId = ContractId.fromString(process.env.CONTRACT_ID);
-const BASEURL_MAIN = 'https://mainnet-public.mirrornode.hedera.com';
-const BASEURL_TEST = 'https://testnet.mirrornode.hedera.com';
 
 const env = process.env.ENVIRONMENT ?? null;
 
@@ -30,6 +28,8 @@ const main = async () => {
 		return;
 	}
 
+	console.log(' -Using Environmenmt:', env);
+
 	const serials = getArgFlag('serials') ? getArg('serials').split(',') : [];
 	const tokenIdStrList = getArg('t').split(',');
 	const tokenIdList = [];
@@ -45,11 +45,9 @@ const main = async () => {
 	}
 
 	if (env.toUpperCase() == 'TEST') {
-		baseUrl = BASEURL_TEST;
 		console.log('interacting in *TESTNET*');
 	}
 	else if (env.toUpperCase() == 'MAIN') {
-		baseUrl = BASEURL_MAIN;
 		console.log('interacting in *MAINNET*');
 	}
 	else {
@@ -62,10 +60,9 @@ const main = async () => {
 
 	// import ABI
 	const json = JSON.parse(fs.readFileSync(`./artifacts/contracts/${contractName}.sol/${contractName}.json`, 'utf8'));
-	abi = json.abi;
 	console.log('\n -Loading ABI...\n');
 
-	iface = new ethers.Interface(abi);
+	iface = new ethers.Interface(json.abi);
 
 	console.log('\n -POST to mirror node...\n');
 	if (getArgFlag('ft')) {
@@ -94,14 +91,16 @@ const main = async () => {
 		const encodedCommand = iface.encodeFunctionData('checkLiveAllowance', [tokenSolidityList[0], ownerList[0], spenderList[0]]);
 		console.log('encodedCommand:', encodedCommand);
 		/*
-		Access precoimle directly
+		Access precompile directly
 		const precompileABI = ['function allowance(address token, address owner, address spender) external returns (int64 responseCode, uint256 allowance)'];
 		const precompileInterface = new ethers.Interface(precompileABI);
 		const encodedCommandPrecompile = precompileInterface.encodeFunctionData('allowance', [tokenSolidityList[0], ownerList[0], spenderList[0]]);
 		ContractId.fromString('0.0.359').toSolidityAddress()
 		console.log(await readOnlyEVMFromMirrorNode(encodedCommandPrecompile, spender, false));
 		*/
-		console.log(await readOnlyEVMFromMirrorNode(encodedCommand, spender, false));
+		const allowance = await readOnlyEVMFromMirrorNode(env, contractId, encodedCommand, spender, false);
+		console.dir(allowance);
+		console.log('allowance:', Number(iface.decodeFunctionData('checkLiveAllowance', allowance)));
 	}
 	else if (getArgFlag('nft')) {
 		if (tokenIdList.length == 0) {
@@ -155,23 +154,6 @@ const main = async () => {
 	}
 };
 
-async function readOnlyEVMFromMirrorNode(data, from, estimate = true) {
-	const body = {
-		'block': 'latest',
-		'data': data,
-		'estimate': estimate,
-		'from': from.toSolidityAddress(),
-		'gas': 300_000,
-		'gasPrice': 100000000,
-		'to': contractId.toSolidityAddress(),
-		'value': 0,
-	};
-
-	const url = `${baseUrl}/api/v1/contracts/call`;
-
-	const response = await axios.post(url, body);
-	return response.data;
-}
 
 main()
 	.then(() => {
