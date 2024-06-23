@@ -31,13 +31,17 @@ const main = async () => {
 		client = Client.forMainnet();
 		console.log('deploying in *MAINNET*');
 	}
+	else if (env.toUpperCase() == 'PREVIEW') {
+		client = Client.forPreviewnet();
+		console.log('deploying in *PREVIEWNET*');
+	}
 	else if (env.toUpperCase() == 'LOCAL') {
 		const node = { '127.0.0.1:50211': new AccountId(3) };
 		client = Client.forNetwork(node).setMirrorNetwork('127.0.0.1:5600');
-		console.log('testing in *LOCAL*');
+		console.log('deploying in *LOCAL*');
 		// baseUrl = 'http://localhost:5551';
 		const rootId = AccountId.fromString('0.0.2');
-		const rootKey = PrivateKey.fromString('302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137');
+		const rootKey = PrivateKey.fromStringED25519('302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137');
 
 		// create an operator account on the local node and use this for testing as operator
 		client.setOperator(rootId, rootKey);

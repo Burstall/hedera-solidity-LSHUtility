@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.5.8 <0.9.0;
+pragma solidity >=0.8.0 <0.9.0;
 
-import { HederaResponseCodes } from "./HederaResponseCodes.sol";
 import { SafeHTS } from "./SafeHTS.sol";
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract LSHUtility is Ownable {
+contract LSHUtilityNative is Ownable {
 
 	error InvalidArguments();
 

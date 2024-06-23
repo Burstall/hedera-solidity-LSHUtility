@@ -3,22 +3,22 @@
   "scripts": {
     "test": "npx hardhat test",
     "test-native": "npx hardhat test test/LSHUtilityNative.test.js",
-	"test-erc20": "npx hardhat test test/LSHUtilityERC.test.js",
+    "test-erc20": "npx hardhat test test/LSHUtilityERC.test.js",
     "check-size": "npx hardhat check-size",
     "solhint": "npx solhint -f table contracts/**/*.sol"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.26.0-beta.2",
-    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^4.8.3",
     "axios": "^1.4.0",
     "chai": "^4.3.7",
     "dotenv": "^16.0.3",
-    "eslint": "^8.40.0",
+    "eslint": "^9.5.0",
     "ethers": "^6.7.0",
     "hardhat": "^2.14.0",
     "hardhat-contract-sizer": "^2.10.0",
     "readline-sync": "^1.4.10",
-    "solhint": "^3.4.1"
+    "solhint": "^5.0.1"
   }
 }
