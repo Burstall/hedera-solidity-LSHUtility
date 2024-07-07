@@ -11,7 +11,7 @@ const { contractDeployFunction } = require('../utils/solidityHelpers');
 require('dotenv').config();
 
 // Get operator from .env file
-let operatorKey = PrivateKey.fromString(process.env.PRIVATE_KEY);
+let operatorKey = PrivateKey.fromStringED25519(process.env.PRIVATE_KEY);
 let operatorId = AccountId.fromString(process.env.ACCOUNT_ID);
 const contractName = process.env.CONTRACT_NAME ?? null;
 const env = process.env.ENVIRONMENT ?? null;
