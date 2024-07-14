@@ -39,9 +39,8 @@ function parseError(iface, errorData) {
 		// decode Error(string)
 
 		const content = `0x${errorData.substring(10)}`;
-		const reason = ethers.AbiCoder.defaultAbiCoder().decode(['string'], content);
+		return `REVERT: ${ethers.AbiCoder.defaultAbiCoder().decode(['string'], content)}`;
 		// reason: string; for standard revert error string
-		return reason[0];
 	}
 
 	if (errorData.startsWith('0x4e487b71')) {
@@ -93,7 +92,8 @@ function parseError(iface, errorData) {
 		return errDescription;
 	}
 	catch (e) {
-		console.error(e);
+		console.error(errorData, e);
+		return `UNKNOWN ERROR: ${errorData}`;
 	}
 }
 
@@ -112,7 +112,13 @@ async function parseErrorTransactionId(envOrClient, transactionId, iface) {
 			.setValidateReceiptStatus(false)
 			.execute(envOrClient);
 
-		return parseError(iface, record.contractFunctionResult.errorMessage);
+		try {
+			return parseError(iface, record.contractFunctionResult.errorMessage);
+		}
+		catch (e) {
+			console.error(e);
+			return `UNKNOWN ERROR: ${transactionId} / ${record.contractFunctionResult.errorMessage}`;
+		}
 	}
 
 	let url = getBaseURL(envOrClient);
@@ -174,9 +180,9 @@ async function readOnlyEVMFromMirrorNode(env, contractId, data, from, estimate =
  * @param {string} fcnName name of the function to call
  * @param {[]} params the function arguments
  * @param {Hbar | null} queryCost the cost of the query - nullable
- * @returns {[TransactionReceipt, any, TransactionRecord]} the transaction receipt and any decoded results
+ * @returns {[]} decoded results
  */
-async function contractExecuteQuery(contractId, iface, client, gasLim, fcnName, params, queryCost, ...expectedVars) {
+async function contractExecuteQuery(contractId, iface, client, gasLim, fcnName, params = [], queryCost, ...expectedVars) {
 	// check the gas lim is a numeric value else 100_000
 	if (!gasLim || isNaN(gasLim)) {
 		gasLim = 100_000;
@@ -184,7 +190,7 @@ async function contractExecuteQuery(contractId, iface, client, gasLim, fcnName, 
 
 	const functionCallAsUint8Array = iface.encodeFunctionData(fcnName, params);
 
-	console.log('Calling function:', fcnName, 'with params:', params);
+	console.log('Calling function:', fcnName, 'with params:', params, 'on contract:', contractId.toString(), 'with gas limit:', gasLim);
 
 	let contractQuery;
 	try {
@@ -201,7 +207,7 @@ async function contractExecuteQuery(contractId, iface, client, gasLim, fcnName, 
 	}
 	catch (err) {
 		console.log('ERROR: Contract Call Failed');
-		// console.dir(err, { depth: 5, colors: true });
+		console.dir(err, { depth: 5, colors: true });
 
 		return [(parseError(iface, err.contractFunctionResult.errorMessage))];
 	}
@@ -230,12 +236,13 @@ async function contractExecuteQuery(contractId, iface, client, gasLim, fcnName, 
  * @param {string} fcnName name of the function to call
  * @param {[]} params the function arguments
  * @param {string | number | Hbar | Long.Long | BigNumber} amountHbar the amount of hbar to send in the method call
+ * @param {boolean} flagError
  * @returns {[TransactionReceipt, any, TransactionRecord]} the transaction receipt and any decoded results
  */
-async function contractExecuteFunction(contractId, iface, client, gasLim, fcnName, params, amountHbar = 0) {
+async function contractExecuteFunction(contractId, iface, client, gasLim, fcnName, params = [], amountHbar = 0, flagError = false) {
 	// check the gas lim is a numeric value else 100_000
 	if (!gasLim || isNaN(gasLim)) {
-		gasLim = 100_000;
+		gasLim = 200_000;
 	}
 
 	const encodedCommand = iface.encodeFunctionData(fcnName, params);
@@ -250,7 +257,7 @@ async function contractExecuteFunction(contractId, iface, client, gasLim, fcnNam
 			.execute(client);
 	}
 	catch (err) {
-		console.log('ERROR: Contract Transaction Failed');
+		if (flagError) console.log('ERROR: Contract Transaction Failed');
 
 		return [(parseError(iface, err.contractFunctionResult.errorMessage))];
 	}
@@ -260,8 +267,20 @@ async function contractExecuteFunction(contractId, iface, client, gasLim, fcnNam
 		contractExecuteRx = await contractExecuteTx.getReceipt(client);
 	}
 	catch (e) {
-		const error = await parseErrorTransactionId(client, e.transactionId, iface);
-		return [{ status: error }, null, null];
+		try {
+			const error = await parseErrorTransactionId(client, e.transactionId, iface);
+			if (flagError) {
+				console.log('ERROR: Fetching Contract Receipt Failed');
+				console.log('ERROR:', typeof error, error);
+			}
+			return [{ status: error }, `${e.transactionId}`, null];
+		}
+		catch (subError) {
+			console.log('ERROR: Parsing Error Failed');
+			console.log('ERROR:', e.transactionId, typeof subError, subError);
+			return [{ status: e }, `${e.transactionId}`, null];
+		}
+
 	}
 	// get the results of the function call;
 	const record = await contractExecuteTx.getRecord(client);

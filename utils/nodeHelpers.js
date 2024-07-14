@@ -20,4 +20,8 @@ function getArg(arg) {
 	return customValue;
 }
 
-module.exports = { getArgFlag, getArg };
+async function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+module.exports = { getArgFlag, getArg, sleep };
