@@ -140,13 +140,16 @@ const main = async () => {
 			const tokenIdSolidityList = [];
 			const spenderList = [];
 			const ownerList = [];
-			for (let s = 0; s < serials.length; s++) {
-				tokenIdSolidityList.push(tokenIdList[0].toSolidityAddress());
+			for (let s = 0; s < tokenIdList.length; s++) {
+				tokenIdSolidityList.push(tokenIdList[s].toSolidityAddress());
 				spenderList.push(spender.toSolidityAddress());
 				ownerList.push(owner.toSolidityAddress());
 			}
+			console.log(' -Checking allowance for:', tokenIdList.map((t) => t.toString()), 'from:', owner.toString(), 'to:', spender.toString());
 			const encodedCommand = iface.encodeFunctionData('checkTokensApprovedForAllSerial', [tokenIdSolidityList, ownerList, spenderList], false);
-			console.log(await readOnlyEVMFromMirrorNode(encodedCommand, owner, false));
+			const result = await readOnlyEVMFromMirrorNode(env, contractId, encodedCommand, owner, false);
+			const value = iface.decodeFunctionResult('checkTokensApprovedForAllSerial', result);
+			console.log('result:', value);
 		}
 	}
 	else {
